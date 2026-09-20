@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eintrittsformular - Personalfragebogen</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- html2pdf.js für clientseitige PDF-Generierung -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: '#64645F',       /* Rachinger Grundfarbe */
+              primaryDark: '#4A4A46',   /* Dunklere Kontraststufe */
+              primaryLight: '#7E7E79',  /* Rahmen / Zwischentöne */
+              accent: '#FAA300',        /* Rachinger Akzentfarbe */
+              accentHover: '#DE9100',   /* Hover-Farbe */
+              accentLight: '#FFF5E0',   /* Sanfter Akzent-Hintergrund */
+              surface: '#F6F6F4',       /* Heller Arbeitsbereich */
+              border: '#D4D4CE'         /* Formularränder */
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #F3F3F1;
+      color: #242422;
+    }
+
+    /* Print-Styling für exakt 1 DIN A4 Einzelseite */
+    @media print {
+      html, body {
+        width: 210mm !important;
+        height: 297mm !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 8pt !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      #previewSection {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      #formSection {
+        display: none !important;
+      }
+      .a4-sheet {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+        overflow: visible !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 8mm 15mm 8mm 15mm;
+      }
+    }
+
+    /* Formular DIN A4 Abmessungen für Bildschirm & Renderer */
+    .a4-sheet {
+      width: 210mm;
+      min-height: 285mm;
+      background: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(100, 100, 95, 0.2), 0 8px 10px -6px rgba(100, 100, 95, 0.1);
+      box-sizing: border-box;
+      padding: 8mm 14mm;
+      transform-origin: top center;
+      transition: transform 0.15s ease-out;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .doc-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    .doc-table td {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #EBEBE8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #A8A8A2;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64645F;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="no-print bg-brand-primary text-white shadow-md sticky top-0 z-40 border-b border-brand-primaryLight">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Logo und Titel -->
+      <div class="flex items-center space-x-3">
+        <div class="h-11 px-3 py-1 bg-white rounded flex items-center justify-center shadow-sm">
+          <img src="Logo Rachinger farbe.png" 
+               alt="Rachinger" 
+               class="h-8 w-auto object-contain" 
+               onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+          <div class="hidden flex flex-col justify-center leading-none">
+            <span class="text-base font-extrabold tracking-tight text-brand-accent font-['Inter']">Rachinger</span>
+            <span class="text-[7.5px] font-semibold tracking-wider text-slate-500 uppercase mt-0.5">
+              steuern <span class="text-brand-accent font-bold">+</span> beraten
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight text-white flex items-center gap-2">
+            EINTRITTSFORMULAR
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-brand-primaryDark border border-brand-accent/40 text-brand-accent hidden sm:inline-block">Personalfragebogen</span>
+          </h1>
+          <p class="text-xs text-slate-200">Stammdatenerfassung nach Rachinger Standard</p>
+        </div>
+      </div>
+
+      <!-- Aktionen -->
+      <div class="flex items-center space-x-2">
+        <button type="button" onclick="loadSampleData()" class="px-3 py-1.5 rounded text-xs font-medium bg-brand-primaryDark hover:bg-brand-primaryLight border border-brand-primaryLight text-slate-100 transition-colors flex items-center gap-1.5" title="Musterdaten laden">
+          <i class="fa-solid fa-wand-magic-sparkles text-brand-accent"></i>
+          <span class="hidden md:inline">Musterdaten</span>
+        </button>
+
+        <button type="button" onclick="resetFormModal()" class="px-2.5 py-1.5 rounded text-xs font-medium bg-transparent hover:bg-rose-950/60 border border-brand-primaryLight text-rose-200 transition-colors flex items-center gap-1.5" title="Formular leeren">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          <span class="hidden md:inline">Leeren</span>
+        </button>
+
+        <button type="button" onclick="triggerPrint()" class="px-3 py-1.5 rounded text-xs font-medium bg-brand-primaryDark hover:bg-brand-primaryLight text-white transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">Drucken</span>
+        </button>
+
+        <button type="button" onclick="downloadPDF()" id="pdfButton" class="px-3.5 sm:px-4 py-1.5 rounded text-xs font-bold bg-brand-accent hover:bg-brand-accentHover text-brand-primaryDark shadow transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-file-arrow-down"></i>
+          <span>PDF Download</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Steuerungsleiste für Ansichten -->
+  <div class="no-print bg-white border-b border-brand-border shadow-sm sticky top-16 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Modus-Tabs -->
+      <div class="flex items-center space-x-1 bg-brand-surface p-1 rounded-lg border border-brand-border">
+        <button type="button" id="tabBtnForm" onclick="switchView('form')" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-primary text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square text-brand-accent"></i>
+          <span>1. Eingabemaske</span>
+        </button>
+        <button type="button" id="tabBtnPreview" onclick="switchView('preview')" class="px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-700 hover:text-brand-primary flex items-center gap-1.5">
+          <i class="fa-solid fa-file-lines text-slate-500"></i>
+          <span>2. A4-Vorschau</span>
+        </button>
+        <button type="button" id="tabBtnSplit" onclick="switchView('split')" class="px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-700 hover:text-brand-primary hidden lg:flex items-center gap-1.5">
+          <i class="fa-solid fa-table-columns text-slate-500"></i>
+          <span>Nebeneinander (Split)</span>
+        </button>
+      </div>
+
+      <!-- Dateinamen-Anzeige -->
+      <div class="text-xs text-slate-600 flex items-center gap-2">
+        <span class="text-slate-400 font-medium">Dateiname:</span>
+        <span id="lbl_targetFilename" class="font-mono font-semibold text-brand-primaryDark bg-brand-accentLight px-2 py-0.5 rounded border border-brand-accent/40">
+          Eintrittsformular.pdf
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Hauptarbeitsbereich -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+    
+    <div id="contentGrid" class="space-y-6">
+
+      <!-- SPALTE 1: EINGABEMASKE -->
+      <div id="formSection" class="space-y-6 block">
+        
+        <div class="bg-brand-accentLight border-l-4 border-brand-accent p-3.5 rounded-r-lg shadow-sm flex items-start gap-3">
+          <i class="fa-solid fa-circle-info text-brand-accent text-base mt-0.5"></i>
+          <div class="text-xs sm:text-sm text-slate-800 leading-normal">
+            Erfasse die Stammdaten. Alle Daten werden automatisch auf exakt einer A4-Seite formatiert. Der Dateiname lautet beim Download <span class="font-mono font-bold text-brand-primaryDark">Eintrittsformular_[Familienname].pdf</span>.
+          </div>
+        </div>
+
+        <form id="eintrittsForm" oninput="updateDocumentPreview()" onchange="updateDocumentPreview()" class="space-y-4">
+          
+          <!-- 1. Dienstgeber & Einsatzort -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-building text-brand-accent"></i>
+                1. Dienstgeber & Einsatzort
+              </h2>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Firmenname / Dienstgeber <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_firmenname" placeholder="z. B. Rachinger Steuerberatung GmbH" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Dienstort <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_dienstort" placeholder="z. B. Braunau am Inn" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Persönliche Daten -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-user text-brand-accent"></i>
+                2. Persönliche Daten Arbeitnehmer/in
+              </h2>
+              <span class="text-[11px] text-slate-200">Stammdaten</span>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Familienname <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_nachname" placeholder="z. B. Mustermann" required class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-semibold outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Vorname <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_vorname" placeholder="z. B. Thomas" required class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Akademischer Grad</label>
+                <input type="text" id="in_titel" placeholder="z. B. Mag., BSc, DI" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Früherer Name vor Eheschließung</label>
+                <input type="text" id="in_geburtsname" placeholder="Geburtsname" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Adresse (Straße, Hausnummer, PLZ, Ort) <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_adresse" placeholder="z. B. Stadtplatz 12, 5280 Braunau am Inn" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Telefonnummer <span class="text-rose-600">*</span></label>
+                <input type="tel" id="in_telefon" placeholder="+43 664 1234567" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Sozialversicherungsnummer (10-stellig) <span class="text-rose-600">*</span></label>
+                <div class="grid grid-cols-5 gap-2">
+                  <input type="text" id="in_svnr_4" maxlength="4" placeholder="1234" class="col-span-2 px-2 py-2 text-xs sm:text-sm text-center rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-mono outline-none">
+                  <input type="text" id="in_svnr_geb" maxlength="6" placeholder="010190" class="col-span-3 px-2 py-2 text-xs sm:text-sm text-center rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-mono outline-none">
+                </div>
+                <span class="text-[10px] text-slate-400">4 Ziffern + TTMMJJ</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Geburtsdatum</label>
+                <input type="date" id="in_geburtsdatum" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Geschlecht</label>
+                <select id="in_geschlecht" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white outline-none">
+                  <option value="männlich">männlich</option>
+                  <option value="weiblich">weiblich</option>
+                  <option value="divers">divers</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Familienstand</label>
+                <select id="in_familienstand" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white outline-none">
+                  <option value="ledig">ledig</option>
+                  <option value="verheiratet">verheiratet</option>
+                  <option value="eingetragene Partnerschaft">eingetragene Partnerschaft</option>
+                  <option value="geschieden">geschieden</option>
+                  <option value="verwitwet">verwitwet</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Staatsangehörigkeit</label>
+                <input type="text" id="in_staatsbuergerschaft" placeholder="z. B. Österreich" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Religion</label>
+                <input type="text" id="in_religion" placeholder="z. B. röm.-kath., o.B." class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Mitversicherte Personen (Name, SV-Nr., Geburtsdatum)</label>
+                <input type="text" id="in_mitversicherte" placeholder="z. B. Kind: Lukas Mustermann, SV-Nr. 5678 120418" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Bankverbindung & Notfallkontakt -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-credit-card text-brand-accent"></i>
+                3. Bankverbindung & Notfallkontakt
+              </h2>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Name der Bank</label>
+                <input type="text" id="in_bank_name" placeholder="z. B. Sparkasse / Raiffeisenbank" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">IBAN <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_iban" placeholder="AT00 0000 0000 0000 0000" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-mono uppercase outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">BIC</label>
+                <input type="text" id="in_bic" placeholder="z. B. RZOOAT2L" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-mono uppercase outline-none">
+              </div>
+
+              <div class="md:col-span-3 pt-2 border-t border-slate-100">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Im Notfall zu verständigen (Name, Telefonnummer, Verwandtschaftsgrad)</label>
+                <input type="text" id="in_notfall" placeholder="z. B. Ehefrau: Maria Mustermann, +43 664 9876543" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Absetzbeträge & Verhältnisse -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-brand-accent"></i>
+                4. Absetzbeträge & Verhältnisse zum Dienstgeber
+              </h2>
+            </div>
+            <div class="p-4 space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Absetzbeträge & Werbungskosten <span class="text-slate-400 font-normal">(Nachweise erforderlich)</span></label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 bg-brand-surface p-2.5 rounded-lg border border-brand-border">
+                  <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="in_absetz_avab" class="rounded text-brand-accent focus:ring-brand-accent h-4 w-4">
+                    <span>Alleinverdiener / Alleinerzieher</span>
+                  </label>
+                  <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="in_absetz_pendler" class="rounded text-brand-accent focus:ring-brand-accent h-4 w-4">
+                    <span>Pendlerpauschale / -euro</span>
+                  </label>
+                  <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="in_absetz_freibetrag" class="rounded text-brand-accent focus:ring-brand-accent h-4 w-4">
+                    <span>Freibetragsbescheid</span>
+                  </label>
+                  <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="in_absetz_gewerkschaft" class="rounded text-brand-accent focus:ring-brand-accent h-4 w-4">
+                    <span>Gewerkschaftsbeitrag</span>
+                  </label>
+                </div>
+                <div class="mt-2">
+                  <input type="text" id="in_absetz_sonstiges" placeholder="Sonstige steuerliche Merkmale / Beilagen..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <div class="bg-brand-surface p-2.5 rounded-lg border border-brand-border flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-700">Am Unternehmen beteiligt?</span>
+                  <div class="flex items-center space-x-4 text-xs">
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input type="radio" name="beteiligt" value="Nein" checked class="text-brand-accent">
+                      <span class="ml-1.5">Nein</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input type="radio" name="beteiligt" value="Ja" class="text-brand-accent">
+                      <span class="ml-1.5 font-medium">Ja</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bg-brand-surface p-2.5 rounded-lg border border-brand-border flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-700">Mit Dienstgeber verwandt?</span>
+                  <div class="flex items-center space-x-4 text-xs">
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input type="radio" name="verwandt" value="Nein" checked class="text-brand-accent">
+                      <span class="ml-1.5">Nein</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input type="radio" name="verwandt" value="Ja" class="text-brand-accent">
+                      <span class="ml-1.5 font-medium">Ja</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Dienstverhältnis -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-briefcase text-brand-accent"></i>
+                5. Daten zum Dienstverhältnis
+              </h2>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Beschäftigt als (Tätigkeit) <span class="text-rose-600">*</span></label>
+                <input type="text" id="in_taetigkeit" placeholder="z. B. Buchhalter/in, Sachbearbeiter/in" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Dienstverhältnis <span class="text-rose-600">*</span></label>
+                <select id="in_dienstverhaeltnis" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white font-medium outline-none">
+                  <option value="Angestellter">Angestellter / Angestellte</option>
+                  <option value="Arbeiter">Arbeiter / Arbeiterin</option>
+                  <option value="Freier Dienstnehmer">Freier Dienstnehmer</option>
+                  <option value="Lehrling">Lehrling</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Beschäftigt ab (Eintrittsdatum) <span class="text-rose-600">*</span></label>
+                <input type="date" id="in_eintrittsdatum" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Kostenstelle</label>
+                <input type="text" id="in_kostenstelle" placeholder="z. B. 100 Verwaltung" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Geringfügig beschäftigt?</label>
+                <select id="in_geringfuegig" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white outline-none">
+                  <option value="Nein">Nein (vollversichert)</option>
+                  <option value="Ja">Ja (Geringfügig)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Befristung</label>
+                <div class="flex items-center gap-2">
+                  <select id="in_befristung_typ" onchange="toggleBefristungDate()" class="w-1/2 px-2 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white outline-none">
+                    <option value="Nein">Nein</option>
+                    <option value="Ja">Ja (befristet)</option>
+                  </select>
+                  <input type="date" id="in_befristung_bis" disabled class="w-1/2 px-2 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent disabled:bg-slate-100 disabled:text-slate-400 outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Stunden pro Woche <span class="text-rose-600">*</span></label>
+                <input type="number" step="0.5" id="in_wochenstunden" placeholder="z. B. 38,5" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Arbeitszeitmodell</label>
+                <input type="text" id="in_arbeitszeitmodell" placeholder="z. B. Gleitzeit" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <!-- Stunden pro Tag -->
+              <div class="md:col-span-3 pt-1">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Beschäftigung an folgenden Tagen (h/Tag):</label>
+                <div class="grid grid-cols-7 gap-1 text-center">
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-bold text-slate-600">Mo</span>
+                    <input type="number" step="0.5" id="in_tag_mo" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-bold text-slate-600">Di</span>
+                    <input type="number" step="0.5" id="in_tag_di" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-bold text-slate-600">Mi</span>
+                    <input type="number" step="0.5" id="in_tag_mi" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-bold text-slate-600">Do</span>
+                    <input type="number" step="0.5" id="in_tag_do" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-bold text-slate-600">Fr</span>
+                    <input type="number" step="0.5" id="in_tag_fr" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-semibold text-slate-400">Sa</span>
+                    <input type="number" step="0.5" id="in_tag_sa" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                  <div class="bg-brand-surface p-1 rounded border border-brand-border">
+                    <span class="block text-[11px] font-semibold text-slate-400">So</span>
+                    <input type="number" step="0.5" id="in_tag_so" placeholder="h" class="w-full mt-0.5 p-1 text-xs text-center border rounded bg-white">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Entlohnung -->
+          <div class="bg-white rounded-xl shadow-sm border border-brand-border overflow-hidden">
+            <div class="bg-brand-primary text-white px-4 py-2.5 flex items-center justify-between">
+              <h2 class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-euro-sign text-brand-accent"></i>
+                6. Gehalt / Lohn & Sachbezüge
+              </h2>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Betrag (€ Brutto) <span class="text-rose-600">*</span></label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">€</span>
+                  <input type="text" id="in_gehalt_betrag" placeholder="z. B. 2.850,00" class="w-full pl-8 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent font-semibold outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Abrechnungszeitraum</label>
+                <select id="in_gehalt_periode" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent bg-white outline-none">
+                  <option value="pro Monat">pro Monat</option>
+                  <option value="pro Stunde">pro Stunde</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Kollektivvertrag / Einstufung</label>
+                <input type="text" id="in_kv_einstufung" placeholder="z. B. Handel, Beschäftigungsgruppe 3" class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Sachbezug PKW</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">€</span>
+                  <input type="text" id="in_sachbezug_pkw" placeholder="0,00" class="w-full pl-8 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+                </div>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Sonstige Sachbezüge / Vereinbarungen</label>
+                <input type="text" id="in_sachbezug_sonstiges" placeholder="z. B. Jobticket, Dienstwohnung..." class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none">
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Zusätzliche Vereinbarungen</label>
+                <textarea id="in_bemerkungen" rows="2" placeholder="z. B. 1 Monat Probezeit vereinbart..." class="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-accent outline-none"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons unten -->
+          <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-xl shadow-sm border border-brand-border">
+            <button type="button" onclick="switchView('preview')" class="px-4 py-2 rounded-lg text-xs font-bold text-brand-primaryDark bg-brand-surface hover:bg-slate-200 border border-brand-border transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-file-lines text-brand-primary"></i> Zur A4-Vorschau wechseln
+            </button>
+            <button type="button" onclick="downloadPDF()" class="px-5 py-2 rounded-lg text-xs font-bold text-brand-primaryDark bg-brand-accent hover:bg-brand-accentHover shadow transition-all flex items-center gap-2">
+              <i class="fa-solid fa-file-arrow-down"></i> PDF jetzt herunterladen
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- SPALTE 2: DOKUMENTENVORSCHAU (A4) -->
+      <div id="previewSection" class="hidden pb-8">
+        
+        <!-- Toolbar über dem Dokument -->
+        <div class="no-print w-full max-w-[210mm] mx-auto mb-3 flex flex-wrap items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-brand-border shadow-sm">
+          <div class="text-xs font-bold text-brand-primary flex items-center gap-2">
+            <i class="fa-solid fa-print text-brand-accent"></i>
+            <span>Druckfertiges A4-Formular (1 Seite)</span>
+          </div>
+
+          <!-- Zoom-Kontrollen -->
+          <div class="flex items-center space-x-1.5 bg-brand-surface px-2 py-1 rounded border border-brand-border text-xs">
+            <span class="text-[11px] text-slate-500 mr-1 hidden sm:inline">Zoom:</span>
+            <button type="button" onclick="adjustZoom(-0.05)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 border border-slate-300 font-bold flex items-center justify-center text-slate-700" title="Verkleinern">-</button>
+            <span id="zoomLevelDisplay" class="font-mono text-[11px] px-1 text-slate-700 font-semibold min-w-[40px] text-center">Auto</span>
+            <button type="button" onclick="adjustZoom(0.05)" class="w-6 h-6 rounded bg-white hover:bg-slate-100 border border-slate-300 font-bold flex items-center justify-center text-slate-700" title="Vergrößern">+</button>
+            <button type="button" onclick="resetZoomAuto()" class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-medium" title="Automatisch einpassen">Auto</button>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="triggerPrint()" class="px-3 py-1 rounded text-xs font-medium bg-brand-surface hover:bg-slate-200 text-slate-700 border border-brand-border flex items-center gap-1.5">
+              <i class="fa-solid fa-print"></i> Drucken
+            </button>
+            <button type="button" onclick="downloadPDF()" class="px-3.5 py-1 rounded text-xs font-bold bg-brand-accent hover:bg-brand-accentHover text-brand-primaryDark shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-file-arrow-down"></i> Speichern
+            </button>
+          </div>
+        </div>
+
+        <!-- Wrapper für responsive Skalierung ohne horizontales Abschneiden -->
+        <div id="a4ScaleWrapper" class="w-full flex justify-center overflow-x-hidden pt-1">
+          
+          <!-- Das tatsächliche A4 Dokument (Optimal ausgenutzt für 1 Seite) -->
+          <div id="pdfContent" class="a4-sheet text-slate-900 border border-brand-border">
+            
+            <!-- Briefkopf: Original-Logo mit direktem typografischen Fallback -->
+            <div class="border-b-2 border-brand-primary pb-2 mb-2 flex justify-between items-center">
+              <div class="flex items-center">
+                <img src="Logo Rachinger farbe.png" 
+                     alt="Rachinger" 
+                     class="h-9 w-auto max-w-[200px] object-contain" 
+                     onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                <div class="hidden flex flex-col justify-center leading-none">
+                  <span class="text-lg font-black tracking-tight text-brand-accent font-['Inter']">Rachinger</span>
+                  <span class="text-[8px] font-semibold tracking-wider text-slate-500 uppercase mt-0.5">
+                    steuern <span class="text-brand-accent font-bold">+</span> beraten
+                  </span>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <div class="text-[8.5px] uppercase font-bold tracking-wider text-brand-accent">Personalstammblatt</div>
+                <h1 class="text-base font-black tracking-tight text-brand-primary leading-none">EINTRITTSFORMULAR</h1>
+                <div class="text-[9px] text-slate-500 mt-0.5">Stand: <span id="doc_print_date" class="font-semibold text-slate-700"></span></div>
+              </div>
+            </div>
+
+            <!-- 1. Firma / Dienstort -->
+            <div class="mb-2 border border-brand-border rounded overflow-hidden text-[9.5px]">
+              <div class="grid grid-cols-2 bg-brand-surface">
+                <div class="p-1 px-2.5 border-r border-brand-border">
+                  <span class="text-[7.5px] uppercase tracking-wider text-slate-500 font-bold block">Firmenname / Dienstgeber</span>
+                  <span id="doc_firmenname" class="font-bold text-slate-800 text-[10px]">-</span>
+                </div>
+                <div class="p-1 px-2.5">
+                  <span class="text-[7.5px] uppercase tracking-wider text-slate-500 font-bold block">Dienstort</span>
+                  <span id="doc_dienstort" class="font-medium text-slate-800 text-[10px]">-</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Persönliche Daten -->
+            <div class="mb-2 border border-brand-border rounded overflow-hidden text-[9.5px]">
+              <div class="bg-brand-primary text-white px-2 py-0.5 font-bold text-[8px] tracking-wide uppercase flex justify-between">
+                <span>Persönliche Daten Arbeitnehmer/in</span>
+                <span class="font-normal text-[7px] text-slate-200">Österreich</span>
+              </div>
+              
+              <table class="doc-table">
+                <tbody>
+                  <tr class="border-b border-brand-border">
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Familienname</td>
+                    <td class="w-1/4 py-1 px-2 font-bold text-slate-900 border-r border-brand-border text-[10px]" id="doc_nachname">-</td>
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Vorname</td>
+                    <td class="w-1/4 py-1 px-2 font-semibold text-slate-900 text-[10px]" id="doc_vorname">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Früherer Name vor Eheschl.</td>
+                    <td class="py-1 px-2 border-r border-brand-border" id="doc_geburtsname">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Akademischer Grad</td>
+                    <td class="py-1 px-2" id="doc_titel">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Adresse (Straße, PLZ, Ort)</td>
+                    <td colspan="3" class="py-1 px-2 font-medium" id="doc_adresse">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Telefonnummer</td>
+                    <td class="py-1 px-2 border-r border-brand-border font-mono" id="doc_telefon">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">SV-Nummer</td>
+                    <td class="py-1 px-2 font-mono font-bold text-brand-primaryDark text-[10px]" id="doc_svnr">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Geburtsdatum</td>
+                    <td class="py-1 px-2 border-r border-brand-border font-mono" id="doc_geburtsdatum">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Geschlecht</td>
+                    <td class="py-1 px-2" id="doc_geschlecht">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Familienstand</td>
+                    <td class="py-1 px-2 border-r border-brand-border" id="doc_familienstand">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Staatsangehörigkeit</td>
+                    <td class="py-1 px-2" id="doc_staatsbuergerschaft">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Religion</td>
+                    <td colspan="3" class="py-1 px-2" id="doc_religion">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Bankverbindung</td>
+                    <td colspan="3" class="py-1 px-2">
+                      <div class="grid grid-cols-3 gap-2 text-[9px]">
+                        <div><span class="text-slate-400">Bank:</span> <span id="doc_bank_name" class="font-medium">-</span></div>
+                        <div><span class="text-slate-400">IBAN:</span> <span id="doc_iban" class="font-mono font-semibold">-</span></div>
+                        <div><span class="text-slate-400">BIC:</span> <span id="doc_bic" class="font-mono">-</span></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Mitversicherte Personen</td>
+                    <td colspan="3" class="py-1 px-2" id="doc_mitversicherte">-</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Notfallkontakt</td>
+                    <td colspan="3" class="py-1 px-2" id="doc_notfall">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 3. Absetzbeträge & Beteiligung -->
+            <div class="mb-2 border border-brand-border rounded overflow-hidden text-[9.5px]">
+              <div class="bg-brand-primary text-white px-2 py-0.5 font-bold text-[8px] tracking-wide uppercase">
+                Absetzbeträge, Werbungskosten & Verhältnisse zum Dienstgeber
+              </div>
+              <div class="p-1.5 px-2.5">
+                <div class="grid grid-cols-2 gap-3 text-[9px]">
+                  <div>
+                    <span class="font-semibold text-slate-700 block mb-0.5">Geltend gemachte Absetzbeträge:</span>
+                    <ul class="list-disc list-inside text-slate-800 space-y-0.5" id="doc_absetzbetraege_list">
+                      <li>Keine</li>
+                    </ul>
+                    <div id="doc_absetz_sonstiges_wrap" class="mt-0.5 hidden">
+                      <span class="text-slate-500">Hinweis: </span><span id="doc_absetz_sonstiges_text" class="italic"></span>
+                    </div>
+                  </div>
+
+                  <div class="border-l border-brand-border pl-3 space-y-0.5">
+                    <div class="flex justify-between">
+                      <span class="text-slate-600">Am Unternehmen beteiligt:</span>
+                      <span id="doc_beteiligt" class="font-bold">Nein</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-slate-600">Mit Dienstgeber verwandt:</span>
+                      <span id="doc_verwandt" class="font-bold">Nein</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Dienstverhältnis -->
+            <div class="mb-2 border border-brand-border rounded overflow-hidden text-[9.5px]">
+              <div class="bg-brand-primary text-white px-2 py-0.5 font-bold text-[8px] tracking-wide uppercase">
+                Daten zum Dienstverhältnis
+              </div>
+              <table class="doc-table">
+                <tbody>
+                  <tr class="border-b border-brand-border">
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Beschäftigt als</td>
+                    <td class="w-1/4 py-1 px-2 font-bold border-r border-brand-border text-[10px]" id="doc_taetigkeit">-</td>
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Dienstverhältnis</td>
+                    <td class="w-1/4 py-1 px-2 font-semibold text-[10px]" id="doc_dienstverhaeltnis">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Beschäftigt ab</td>
+                    <td class="py-1 px-2 font-bold text-brand-primaryDark border-r border-brand-border text-[10px]" id="doc_eintrittsdatum">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Kostenstelle</td>
+                    <td class="py-1 px-2" id="doc_kostenstelle">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 border-r border-brand-border" id="doc_befristung">Nein</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Befristung</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Geringfügig beschäftigt</td>
+                    <td class="py-1 px-2 font-semibold" id="doc_geringfuegig">Nein</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Stunden pro Woche</td>
+                    <td class="py-1 px-2 font-bold border-r border-brand-border text-[10px]" id="doc_wochenstunden">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Arbeitszeitmodell</td>
+                    <td class="py-1 px-2" id="doc_arbeitszeitmodell">-</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Tägliche Arbeitszeit</td>
+                    <td colspan="3" class="p-1 px-2">
+                      <div class="grid grid-cols-7 gap-1 text-center font-mono text-[8.5px]">
+                        <div><span class="text-slate-400 block text-[7px]">Mo</span><span id="doc_tag_mo">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">Di</span><span id="doc_tag_di">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">Mi</span><span id="doc_tag_mi">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">Do</span><span id="doc_tag_do">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">Fr</span><span id="doc_tag_fr">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">Sa</span><span id="doc_tag_sa">-</span></div>
+                        <div><span class="text-slate-400 block text-[7px]">So</span><span id="doc_tag_so">-</span></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 5. Entlohnung & Sachbezüge -->
+            <div class="mb-2 border border-brand-border rounded overflow-hidden text-[9.5px]">
+              <div class="bg-brand-primary text-white px-2 py-0.5 font-bold text-[8px] tracking-wide uppercase">
+                Gehalt / Lohn & Sachbezüge
+              </div>
+              <table class="doc-table">
+                <tbody>
+                  <tr class="border-b border-brand-border">
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Gehalt / Lohn</td>
+                    <td class="w-1/4 py-1 px-2 font-bold text-slate-900 border-r border-brand-border text-[10px]">
+                      <span id="doc_gehalt">-</span> <span class="text-[8px] font-normal text-slate-500" id="doc_periode"></span>
+                    </td>
+                    <td class="w-1/4 py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Kollektivvertrag</td>
+                    <td class="w-1/4 py-1 px-2" id="doc_kv">-</td>
+                  </tr>
+                  <tr class="border-b border-brand-border">
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Sachbezug PKW</td>
+                    <td class="py-1 px-2 border-r border-brand-border" id="doc_sachbezug_pkw">-</td>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Sonstige Sachbezüge</td>
+                    <td class="py-1 px-2" id="doc_sachbezug_sonstiges">-</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1 px-2 bg-brand-surface font-semibold text-slate-600 border-r border-brand-border">Sonstige Vereinbarungen</td>
+                    <td colspan="3" class="py-1 px-2 italic text-slate-700" id="doc_bemerkungen">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Unterschriftenzeile -->
+            <div class="mt-3 pt-2 border-t border-slate-300">
+              <div class="text-[8px] text-slate-500 mb-2 leading-tight">
+                Ich bestätige die Richtigkeit und Vollständigkeit der vorstehenden Angaben. Änderungen der persönlichen Verhältnisse (z. B. Wohnsitz, Familienstand, Absetzbeträge) werden unverzüglich bekanntgegeben.
+              </div>
+
+              <div class="grid grid-cols-2 gap-8 text-[9px]">
+                <div>
+                  <div class="border-b border-slate-400 h-9 flex items-end pb-1">
+                    <span class="text-[8px] text-slate-400">Ort, Datum</span>
+                  </div>
+                  <div class="text-center text-[8.5px] text-slate-600 mt-0.5 font-medium">Unterschrift Arbeitnehmer/in</div>
+                </div>
+
+                <div>
+                  <div class="border-b border-slate-400 h-9 flex items-end pb-1">
+                    <span class="text-[8px] text-slate-400">Ort, Datum</span>
+                  </div>
+                  <div class="text-center text-[8.5px] text-slate-600 mt-0.5 font-medium">Unterschrift Dienstgeber / Stempel</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal / Dialogfenster -->
+  <div id="customModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-sm w-full p-5 shadow-2xl border border-brand-border text-center">
+      <div id="modalIcon" class="w-12 h-12 rounded-full bg-brand-accentLight text-brand-accent flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h3 id="modalTitle" class="font-bold text-base text-brand-primaryDark mb-1">Hinweis</h3>
+      <p id="modalMessage" class="text-xs text-slate-600 mb-5 leading-relaxed"></p>
+      
+      <div id="modalActions" class="flex justify-center space-x-2">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primaryDark transition-colors">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logik -->
+  <script>
+    let currentView = 'form';
+    let manualZoom = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const docDateElem = document.getElementById('doc_print_date');
+      if (docDateElem) docDateElem.innerText = formattedDate;
+
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      const yyyy = nextMonth.getFullYear();
+      const mm = String(nextMonth.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextMonth.getDate()).padStart(2, '0');
+      const inEintritt = document.getElementById('in_eintrittsdatum');
+      if (inEintritt) inEintritt.value = `${yyyy}-${mm}-${dd}`;
+
+      const svnr4 = document.getElementById('in_svnr_4');
+      const svnGeb = document.getElementById('in_svnr_geb');
+      svnr4.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+        if (e.target.value.length >= 4) svnGeb.focus();
+      });
+      svnGeb.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+      });
+
+      window.addEventListener('resize', () => {
+        applyScaling();
+      });
+
+      updateDocumentPreview();
+    });
+
+    // Skalierungsberechnung verhindert Abschneiden in Split- und Mobilansichten
+    function applyScaling() {
+      const sheet = document.getElementById('pdfContent');
+      const wrapper = document.getElementById('a4ScaleWrapper');
+      const zoomDisplay = document.getElementById('zoomLevelDisplay');
+      if (!sheet || !wrapper) return;
+
+      if (currentView === 'form') return;
+
+      const sheetNaturalWidth = 794; // 210mm bei 96 DPI
+      const availableWidth = wrapper.clientWidth - 16;
+
+      let scale = 1;
+
+      if (manualZoom !== null) {
+        scale = manualZoom;
+        if (zoomDisplay) zoomDisplay.innerText = Math.round(scale * 100) + '%';
+      } else {
+        if (availableWidth < sheetNaturalWidth) {
+          scale = Math.max(0.35, availableWidth / sheetNaturalWidth);
+        } else {
+          scale = 1;
+        }
+        if (zoomDisplay) zoomDisplay.innerText = 'Auto';
+      }
+
+      sheet.style.transform = `scale(${scale})`;
+      sheet.style.transformOrigin = 'top center';
+
+      const sheetHeight = sheet.offsetHeight || 1080;
+      const heightDifference = (sheetHeight * (1 - scale));
+      sheet.style.marginBottom = `-${heightDifference}px`;
+    }
+
+    function adjustZoom(delta) {
+      if (manualZoom === null) {
+        const sheetNaturalWidth = 794;
+        const availableWidth = document.getElementById('a4ScaleWrapper').clientWidth - 16;
+        manualZoom = Math.min(1, availableWidth / sheetNaturalWidth);
+      }
+      manualZoom = Math.max(0.3, Math.min(1.4, manualZoom + delta));
+      applyScaling();
+    }
+
+    function resetZoomAuto() {
+      manualZoom = null;
+      applyScaling();
+    }
+
+    function switchView(mode) {
+      currentView = mode;
+      updateDocumentPreview();
+
+      const formSec = document.getElementById('formSection');
+      const prevSec = document.getElementById('previewSection');
+      const grid = document.getElementById('contentGrid');
+
+      const btnForm = document.getElementById('tabBtnForm');
+      const btnPrev = document.getElementById('tabBtnPreview');
+      const btnSplit = document.getElementById('tabBtnSplit');
+
+      const inactiveClass = 'px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-700 hover:text-brand-primary flex items-center gap-1.5';
+      const activeClass = 'px-3.5 py-1.5 rounded-md text-xs font-bold transition-all bg-brand-primary text-white shadow-sm flex items-center gap-1.5';
+
+      btnForm.className = inactiveClass;
+      btnPrev.className = inactiveClass;
+      if (btnSplit) btnSplit.className = inactiveClass;
+
+      if (mode === 'form') {
+        grid.className = 'space-y-6';
+        formSec.className = 'space-y-6 block';
+        prevSec.className = 'hidden';
+        btnForm.className = activeClass;
+      } else if (mode === 'preview') {
+        grid.className = 'space-y-6';
+        formSec.className = 'hidden';
+        prevSec.className = 'block';
+        btnPrev.className = activeClass;
+        setTimeout(applyScaling, 50);
+      } else if (mode === 'split') {
+        grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-6 items-start';
+        formSec.className = 'space-y-6 block';
+        prevSec.className = 'block lg:sticky lg:top-32';
+        if (btnSplit) btnSplit.className = activeClass;
+        setTimeout(applyScaling, 50);
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleBefristungDate() {
+      const type = document.getElementById('in_befristung_typ').value;
+      const dateInput = document.getElementById('in_befristung_bis');
+      dateInput.disabled = (type === 'Nein');
+      if (type === 'Nein') dateInput.value = '';
+      updateDocumentPreview();
+    }
+
+    function getFilename() {
+      const nachname = document.getElementById('in_nachname').value.trim();
+      if (!nachname) return 'Eintrittsformular.pdf';
+      const cleanName = nachname.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, '');
+      return `Eintrittsformular_${cleanName || 'Personal'}.pdf`;
+    }
+
+    function updateDocumentPreview() {
+      const val = (id) => (document.getElementById(id) ? document.getElementById(id).value.trim() : '');
+      const setDoc = (id, text, fallback = '-') => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text ? text : fallback;
+      };
+
+      setDoc('doc_firmenname', val('in_firmenname'));
+      setDoc('doc_dienstort', val('in_dienstort'));
+
+      setDoc('doc_nachname', val('in_nachname'));
+      setDoc('doc_vorname', val('in_vorname'));
+      setDoc('doc_geburtsname', val('in_geburtsname'));
+      setDoc('doc_titel', val('in_titel'));
+      setDoc('doc_adresse', val('in_adresse'));
+      setDoc('doc_telefon', val('in_telefon'));
+
+      const sv4 = val('in_svnr_4');
+      const svgeb = val('in_svnr_geb');
+      setDoc('doc_svnr', (sv4 || svgeb) ? `${sv4} ${svgeb}`.trim() : '-');
+
+      const rawGeb = val('in_geburtsdatum');
+      if (rawGeb && rawGeb.includes('-')) {
+        const p = rawGeb.split('-');
+        setDoc('doc_geburtsdatum', `${p[2]}.${p[1]}.${p[0]}`);
+      } else {
+        setDoc('doc_geburtsdatum', rawGeb || '-');
+      }
+
+      setDoc('doc_geschlecht', val('in_geschlecht'));
+      setDoc('doc_familienstand', val('in_familienstand'));
+      setDoc('doc_staatsbuergerschaft', val('in_staatsbuergerschaft'));
+      setDoc('doc_religion', val('in_religion'));
+
+      setDoc('doc_bank_name', val('in_bank_name'));
+      setDoc('doc_iban', val('in_iban'));
+      setDoc('doc_bic', val('in_bic'));
+      setDoc('doc_mitversicherte', val('in_mitversicherte'));
+      setDoc('doc_notfall', val('in_notfall'));
+
+      const absetzList = document.getElementById('doc_absetzbetraege_list');
+      if (absetzList) {
+        absetzList.innerHTML = '';
+        const items = [];
+        if (document.getElementById('in_absetz_avab').checked) items.push('Alleinverdiener- / Alleinerzieherabsetzbetrag (AVAB/AEAB)');
+        if (document.getElementById('in_absetz_pendler').checked) items.push('Pendlerpauschale / Pendlereuro');
+        if (document.getElementById('in_absetz_freibetrag').checked) items.push('Freibetragsbescheid');
+        if (document.getElementById('in_absetz_gewerkschaft').checked) items.push('Gewerkschaftsbeitrag');
+
+        if (items.length === 0) {
+          absetzList.innerHTML = '<li class="text-slate-400 italic">Keine geltend gemacht</li>';
+        } else {
+          items.forEach(it => {
+            const li = document.createElement('li');
+            li.textContent = it;
+            li.className = 'font-semibold text-slate-800';
+            absetzList.appendChild(li);
+          });
+        }
+      }
+
+      const sonstigesAbsetz = val('in_absetz_sonstiges');
+      const wrapSonst = document.getElementById('doc_absetz_sonstiges_wrap');
+      const textSonst = document.getElementById('doc_absetz_sonstiges_text');
+      if (sonstigesAbsetz) {
+        wrapSonst.classList.remove('hidden');
+        textSonst.textContent = sonstigesAbsetz;
+      } else {
+        wrapSonst.classList.add('hidden');
+      }
+
+      const getRadio = (name) => {
+        const r = document.querySelector(`input[name="${name}"]:checked`);
+        return r ? r.value : 'Nein';
+      };
+      setDoc('doc_beteiligt', getRadio('beteiligt'));
+      setDoc('doc_verwandt', getRadio('verwandt'));
+
+      setDoc('doc_taetigkeit', val('in_taetigkeit'));
+      setDoc('doc_dienstverhaeltnis', val('in_dienstverhaeltnis'));
+
+      const rawEintritt = val('in_eintrittsdatum');
+      if (rawEintritt && rawEintritt.includes('-')) {
+        const ep = rawEintritt.split('-');
+        setDoc('doc_eintrittsdatum', `${ep[2]}.${ep[1]}.${ep[0]}`);
+      } else {
+        setDoc('doc_eintrittsdatum', rawEintritt || '-');
+      }
+
+      setDoc('doc_kostenstelle', val('in_kostenstelle'));
+      setDoc('doc_geringfuegig', val('in_geringfuegig'));
+
+      const befTyp = val('in_befristung_typ');
+      const befBis = val('in_befristung_bis');
+      if (befTyp === 'Ja' && befBis && befBis.includes('-')) {
+        const bp = befBis.split('-');
+        setDoc('doc_befristung', `Ja (bis ${bp[2]}.${bp[1]}.${bp[0]})`);
+      } else if (befTyp === 'Ja') {
+        setDoc('doc_befristung', 'Ja (befristet)');
+      } else {
+        setDoc('doc_befristung', 'Nein (unbefristet)');
+      }
+
+      const wst = val('in_wochenstunden');
+      setDoc('doc_wochenstunden', wst ? `${wst} h` : '-');
+      setDoc('doc_arbeitszeitmodell', val('in_arbeitszeitmodell'));
+
+      ['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so'].forEach(day => {
+        const dv = val(`in_tag_${day}`);
+        setDoc(`doc_tag_${day}`, dv ? `${dv}h` : '-');
+      });
+
+      const gehaltVal = val('in_gehalt_betrag');
+      setDoc('doc_gehalt', gehaltVal ? `€ ${gehaltVal}` : '-');
+      setDoc('doc_periode', val('in_gehalt_periode'));
+      setDoc('doc_kv', val('in_kv_einstufung'));
+      setDoc('doc_sachbezug_pkw', val('in_sachbezug_pkw') ? `€ ${val('in_sachbezug_pkw')}` : '-');
+      setDoc('doc_sachbezug_sonstiges', val('in_sachbezug_sonstiges'));
+      setDoc('doc_bemerkungen', val('in_bemerkungen'));
+
+      const targetFilename = getFilename();
+      const lblTarget = document.getElementById('lbl_targetFilename');
+      if (lblTarget) lblTarget.innerText = targetFilename;
+    }
+
+    function loadSampleData() {
+      document.getElementById('in_firmenname').value = 'Rachinger Steuerberatung GmbH';
+      document.getElementById('in_dienstort').value = 'Braunau am Inn';
+      document.getElementById('in_nachname').value = 'Mustermann';
+      document.getElementById('in_vorname').value = 'Markus';
+      document.getElementById('in_geburtsname').value = 'Bauer';
+      document.getElementById('in_titel').value = 'BSc';
+      document.getElementById('in_adresse').value = 'Linzer Straße 42, 5280 Braunau am Inn';
+      document.getElementById('in_telefon').value = '+43 664 8123456';
+      document.getElementById('in_svnr_4').value = '4192';
+      document.getElementById('in_svnr_geb').value = '140689';
+      document.getElementById('in_geburtsdatum').value = '1989-06-14';
+      document.getElementById('in_geschlecht').value = 'männlich';
+      document.getElementById('in_familienstand').value = 'verheiratet';
+      document.getElementById('in_staatsbuergerschaft').value = 'Österreich';
+      document.getElementById('in_religion').value = 'röm.-kath.';
+      
+      document.getElementById('in_bank_name').value = 'Sparkasse OÖ';
+      document.getElementById('in_iban').value = 'AT84 2032 0000 0123 4567';
+      document.getElementById('in_bic').value = 'ASPKOO21';
+      document.getElementById('in_mitversicherte').value = 'Sohn: Felix Mustermann (SV 7890 220320)';
+      document.getElementById('in_notfall').value = 'Ehepartnerin: Julia Mustermann, +43 664 8765432';
+
+      document.getElementById('in_absetz_avab').checked = true;
+      document.getElementById('in_absetz_pendler').checked = true;
+      document.getElementById('in_absetz_freibetrag').checked = false;
+      document.getElementById('in_absetz_gewerkschaft').checked = false;
+      document.getElementById('in_absetz_sonstiges').value = 'Pendlerrechner-Ausdruck beigelegt';
+
+      document.getElementById('in_taetigkeit').value = 'Senior Personalverrechner';
+      document.getElementById('in_dienstverhaeltnis').value = 'Angestellter';
+      document.getElementById('in_kostenstelle').value = '110 Personalwesen';
+      document.getElementById('in_geringfuegig').value = 'Nein';
+      document.getElementById('in_befristung_typ').value = 'Nein';
+      toggleBefristungDate();
+      document.getElementById('in_wochenstunden').value = '38.5';
+      document.getElementById('in_arbeitszeitmodell').value = 'Gleitzeitvereinbarung';
+
+      document.getElementById('in_tag_mo').value = '8';
+      document.getElementById('in_tag_di').value = '8';
+      document.getElementById('in_tag_mi').value = '8';
+      document.getElementById('in_tag_do').value = '8';
+      document.getElementById('in_tag_fr').value = '6.5';
+      document.getElementById('in_tag_sa').value = '';
+      document.getElementById('in_tag_so').value = '';
+
+      document.getElementById('in_gehalt_betrag').value = '3.450,00';
+      document.getElementById('in_gehalt_periode').value = 'pro Monat';
+      document.getElementById('in_kv_einstufung').value = 'Wirtschaftstreuhänder, BG IV / 5. BJ';
+      document.getElementById('in_sachbezug_pkw').value = '0,00';
+      document.getElementById('in_sachbezug_sonstiges').value = 'Öffi-Klimaticket Österreich';
+      document.getElementById('in_bemerkungen').value = '1 Monat Probezeit vereinbart.';
+
+      updateDocumentPreview();
+      showModal('Musterdaten geladen', 'Die Felder wurden befüllt. Über „2. A4-Vorschau“ oder „Nebeneinander“ kann das Resultat geprüft werden.');
+    }
+
+    function resetFormModal() {
+      const modal = document.getElementById('customModal');
+      const title = document.getElementById('modalTitle');
+      const msg = document.getElementById('modalMessage');
+      const actions = document.getElementById('modalActions');
+      const icon = document.getElementById('modalIcon');
+
+      icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-brand-accent"></i>';
+      icon.className = 'w-12 h-12 rounded-full bg-brand-accentLight text-brand-accent flex items-center justify-center mx-auto mb-3 text-xl';
+      title.innerText = 'Formular zurücksetzen';
+      msg.innerText = 'Möchtest du alle Eingaben leeren?';
+      
+      actions.innerHTML = `
+        <button type="button" onclick="closeModal()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-100">
+          Abbrechen
+        </button>
+        <button type="button" onclick="executeResetForm()" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold">
+          Ja, leeren
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function executeResetForm() {
+      document.getElementById('eintrittsForm').reset();
+      toggleBefristungDate();
+      updateDocumentPreview();
+      closeModal();
+    }
+
+    // PDF Download - exakt 1 A4-Seite, 15mm Rand beidseitig (2mm nach innen versetzt)
+    function downloadPDF() {
+      updateDocumentPreview();
+      const element = document.getElementById('pdfContent');
+      const filename = getFilename();
+      const pdfBtn = document.getElementById('pdfButton');
+
+      const origContent = pdfBtn.innerHTML;
+      pdfBtn.disabled = true;
+      pdfBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Erstelle PDF...</span>';
+
+      // 1. Klon anlegen für isoliertes Rendering ohne Skalierungs-/Zentrierungsversatz
+      const clone = element.cloneNode(true);
+      clone.style.transform = 'none';
+      clone.style.margin = '0';
+      clone.style.width = '180mm';
+      clone.style.maxWidth = '180mm';
+      clone.style.minHeight = '0';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = '275mm';
+      clone.style.boxSizing = 'border-box';
+      clone.style.boxShadow = 'none';
+      clone.style.border = 'none';
+      clone.style.padding = '0';
+      clone.style.backgroundColor = '#ffffff';
+      clone.style.overflow = 'hidden';
+
+      // 2. Temporärer Container am Nullpunkt (oben links)
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '0';
+      container.style.left = '0';
+      container.style.width = '180mm';
+      container.style.zIndex = '-99999';
+      container.style.backgroundColor = '#ffffff';
+      container.style.overflow = 'hidden';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      const opt = {
+        margin: [8, 15, 8, 15], // 15mm links/rechts + 180mm = 210mm DIN A4 exakt zentriert
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          letterRendering: true,
+          scrollX: 0,
+          scrollY: 0
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: { mode: 'avoid-all' }
+      };
+
+      html2pdf().set(opt).from(clone).toPdf().get('pdf').then(function(pdf) {
+        // Garantieren, dass niemals eine 2. Seite existiert
+        while (pdf.internal.getNumberOfPages() > 1) {
+          pdf.deletePage(pdf.internal.getNumberOfPages());
+        }
+        pdf.save(filename);
+      }).then(() => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+        pdfBtn.disabled = false;
+        pdfBtn.innerHTML = origContent;
+        showModal('PDF gespeichert', `Die Datei "${filename}" wurde erfolgreich heruntergeladen.`);
+      }).catch(() => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+        pdfBtn.disabled = false;
+        pdfBtn.innerHTML = origContent;
+        showModal('Hinweis', 'Nutze alternativ die Druckfunktion und wähle "Als PDF speichern".');
+      });
+    }
+
+    // Druckfunktion
+    function triggerPrint() {
+      updateDocumentPreview();
+      const filename = getFilename().replace('.pdf', '');
+      const originalTitle = document.title;
+      document.title = filename;
+
+      const element = document.getElementById('pdfContent');
+      const prevTransform = element.style.transform;
+      const prevMarginBottom = element.style.marginBottom;
+
+      element.style.transform = 'none';
+      element.style.marginBottom = '0';
+
+      const prevSec = document.getElementById('previewSection');
+      const wasHidden = prevSec.classList.contains('hidden');
+      if (wasHidden) prevSec.classList.remove('hidden');
+
+      window.print();
+
+      setTimeout(() => {
+        document.title = originalTitle;
+        element.style.transform = prevTransform;
+        element.style.marginBottom = prevMarginBottom;
+        if (wasHidden && currentView === 'form') {
+          prevSec.classList.add('hidden');
+        }
+      }, 500);
+    }
+
+    function showModal(titleText, msgText) {
+      const modal = document.getElementById('customModal');
+      document.getElementById('modalTitle').innerText = titleText;
+      document.getElementById('modalMessage').innerText = msgText;
+      document.getElementById('modalActions').innerHTML = `
+        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-brand-primary text-white text-xs font-semibold hover:bg-brand-primaryDark transition-colors">
+          Schließen
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
